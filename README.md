@@ -1,6 +1,6 @@
-# Real-Debrid Torrent Client
+# Real-Debrid Torrent Client (Test)
 
-This is a web interface to manage your torrents on Real-Debrid, AllDebrid or Premiumize. It supports the following features:
+This is a web interface test to manage your torrents on Real-Debrid, AllDebrid or Premiumize. It supports the following features:
 
 - Add new torrents through magnets or files
 - Download all files from Real-Debrid, AllDebrid or Premiumize to your local machine automatically
@@ -20,44 +20,59 @@ This is a web interface to manage your torrents on Real-Debrid, AllDebrid or Pre
 
 ## Docker Setup
 
-You can run the docker container on Windows, Linux. To get started either use _Docker Run_ or _Docker Compose_.
-
-### Docker Run
-
-```console
-docker run --pull=always
-		   --volume /your/download/path/:/data/downloads \
-		   --volume /your/storage/path/:/data/db \
-		   --log-driver json-file \
-		   --log-opt max-size=10m \
-		   -p 6500:6500 \
-		   --name rdtclient \
-		   rogerfar/rdtclient:latest
-```
-
-Replace `/your/download/path/` with your local path to download files to. For Windows i.e. `C:/Downloads`.
-Replace `/your/storage/path/` with your local path to store persistent database and log files in. For Windows i.e. `C:/Docker/rdt-client`.
+You can run the docker container on Windows, Linux. To get started either use _Docker Compose_.
 
 ### Docker Compose
 
 You can use the provided docker compose to run:
 
 ```yaml
-version: '3.3'
+version: "3"
 services:
-    rdtclient:
-        container_name: rdtclient
-        volumes:
-            - 'D:/Downloads/:/data/downloads'
-            - 'D:/Docker/rdt-client/:/data/db'
-        image: rogerfar/rdtclient
-        restart: always
-        logging:
-            driver: json-file
-            options:
-                max-size: 10m
-        ports:
-            - '6500:6500'
+  rdtclient:
+    restart: unless-stopped
+    container_name: rdtclient
+    # build:
+    #     context: .
+    #     dockerfile: Dockerfile
+    image: mentalblank/rdtclient:latest
+    hostname: rdtclient
+    environment:
+      - PUID=1000
+      - PGID=1000
+      - TZ=ETC/UTC
+    logging:
+        driver: json-file
+        options:
+            max-size: 10m
+    ports:
+      - 6500/tcp
+    networks:
+      - saltbox
+    labels:
+      com.github.saltbox.saltbox_managed: true 
+      traefik.enable: true 
+      traefik.http.routers.rdtclient-http.entrypoints: web 
+      traefik.http.routers.rdtclient-http.middlewares: globalHeaders@file,redirect-to-https@docker,cloudflarewarp@docker 
+      traefik.http.routers.rdtclient-http.rule: Host(`rdtclient.yourdomain.com`) 
+      traefik.http.routers.rdtclient-http.service: rdtclient 
+      traefik.http.routers.rdtclient.entrypoints: websecure 
+      traefik.http.routers.rdtclient.middlewares: globalHeaders@file,secureHeaders@file,cloudflarewarp@docker 
+      traefik.http.routers.rdtclient.rule: Host(`rdtclient.yourdomain.com`) 
+      traefik.http.routers.rdtclient.service: rdtclient 
+      traefik.http.routers.rdtclient.tls.certresolver: cfdns 
+      traefik.http.routers.rdtclient.tls.options: securetls@file 
+      traefik.http.services.rdtclient.loadbalancer.server.port: 6500 
+    volumes:
+      - /opt/rdtclient:/CONFIG
+      - /etc/localtime:/etc/localtime:ro
+      - /mnt:/mnt
+      - /opt/rdtclient/data:/data
+      - /opt/rdtclient/data/db:/data/db
+
+networks:
+  saltbox:
+    external: true
 ```
 
 And to run:
@@ -67,70 +82,6 @@ docker-compose up -d
 ```
 
 Replace the paths in `volumes` as in the above step.
-
-## Run as a Service
-
-Instead of running in Docker you can install it as a service in Windows or Linux.
-## Windows Service
-
-1. Make sure you have the ASP.NET Core Runtime 8 installed: [https://dotnet.microsoft.com/download/dotnet/8.0](https://dotnet.microsoft.com/download/dotnet/8.0)
-1. Get the latest zip file from the Releases page and extract it to your host.
-1. Open the `appsettings.json` file and replace the `LogLevel` `Path` to a path on your host.
-1. In `appsettings.json` replace the `Database` `Path` to a path on your host.
-1. When using Windows paths, make sure to escape the slashes. For example: `D:\\RdtClient\\db\\rdtclient.db`
-
-## Linux Service
-
-Instead of running in Docker you can install it as a service in Linux.
-
-1. Install .NET: [https://docs.microsoft.com/en-us/dotnet/core/install/linux](https://docs.microsoft.com/en-us/dotnet/core/install/linux)
-
-    Ubuntu 20.04 example:  
-    ```wget https://packages.microsoft.com/config/ubuntu/20.04/packages-microsoft-prod.deb -O packages-microsoft-prod.deb```  
-    
-    ```sudo dpkg -i packages-microsoft-prod.deb```  
-
-    ```rm packages-microsoft-prod.deb```  
-
-    ```sudo apt-get update && sudo apt-get install -y dotnet-sdk-8.0```  
-
-2. Get latest archive from [releases](https://github.com/rogerfar/rdt-client/releases):  
-```wget <zip_url>```
-3. Extract to path of your choice (~/rtdc in this example):  
-```unzip RealDebridClient.zip -d ~/rdtc && cd ~/rdtc```
-4. In appsettings.json replace the Database Path to a path on your host. Any directories in path must already exist. Or just remove "/data/db/" for ease.
-5. Test rdt client runs ok:  
-```dotnet RdtClient.Web.dll```   
-navigate to http://<ipaddress>:6500, if all is good then we'll create a service
-6. Create a service (systemd in this example):  
-```sudo nano /etc/systemd/system/rdtc.service```  
-
-    paste in this service file content and edit path of your directory:
-
-    ```
-    [Unit]
-    Description=RdtClient Service
-
-    [Service]
-
-    WorkingDirectory=/home/<username>/rdtc
-    ExecStart=/usr/bin/dotnet RdtClient.Web.dll
-    SyslogIdentifier=RdtClient
-    User=<username>
-
-    [Install]
-    WantedBy=multi-user.target
-    ```
-
-7. enable and start the service:   
-```sudo systemctl daemon-reload```  
-```sudo systemctl enable rdtc```  
-```sudo systemctl start rdtc```  
-
-## Proxmox LXC
-
-If you use Proxmox for your homelab, you can run rdt-client in a linux container (LXC), check it here:
-[https://tteck.github.io/Proxmox/](https://tteck.github.io/Proxmox/) 
 
 ## Setup
 
@@ -149,7 +100,7 @@ Currently there 4 available download clients:
 
 #### Internal Downloader
 
-This experimental [downloader](https://github.com/rogerfar/Downloader.NET) can be used to download files with multiple sections in parallel.
+This experimental [downloader](https://github.com/mentalblank/Downloader.NET) can be used to download files with multiple sections in parallel.
 
 It has the following options:
 

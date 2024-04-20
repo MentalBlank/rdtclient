@@ -36,19 +36,19 @@ public class DbSettingsGeneral
 {
     [DisplayName("Log level")]
     [Description("Recommended level is Warning, set to Debug to get the most info.")]
-    public LogLevel LogLevel { get; set; } = LogLevel.Error;
+    public LogLevel LogLevel { get; set; } = LogLevel.Warning;
 
     [DisplayName("Maximum parallel downloads")]
     [Description("Maximum amount of torrents that get downloaded to your host at the same time.")]
-    public Int32 DownloadLimit { get; set; } = 2;
+    public Int32 DownloadLimit { get; set; } = 100;
 
     [DisplayName("Maximum unpack processes")]
     [Description("Maximum amount of downloads that get unpacked on your host at the same time.")]
-    public Int32 UnpackLimit { get; set; } = 1;
+    public Int32 UnpackLimit { get; set; } = 100;
 
     [DisplayName("Categories")]
     [Description("Expose these categories through the QBittorrent API. Define multiple categories by separating them with a comma.")]
-    public String? Categories { get; set; } = null;
+    public String? Categories { get; set; } = "radarr,sonarr,radarr4k,sonarr4k,radarr4kdv,sonarr4kdv,radarranime,sonarranime";
 
     [DisplayName("Run external program on torrent completion")]
     [Description("Path to the executable to run when the torrent and all downloads are finished. No arguments should be passed here.When running in Docker, this command will run on your docker instance!")]
@@ -81,15 +81,15 @@ public class DbSettingsDownloadClient
     [DisplayName("Download client")]
     [Description(@"Select which download client to use, see the
 <a href=""https://github.com/rogerfar/rdt-client/"" target=""_blank"">README</a> for the various options.")]
-    public DownloadClient Client { get; set; } = DownloadClient.Internal;
+    public DownloadClient Client { get; set; } = DownloadClient.Symlink;
 
     [DisplayName("Download path")]
     [Description("Path in the docker container to download files to (i.e. /data/downloads), or a local path when using as a service.")]
-    public String DownloadPath { get; set; } = "/data/downloads";
+    public String DownloadPath { get; set; } = "/mnt/symlinks";
 
     [DisplayName("Mapped path")]
     [Description("Path where files are downloaded to on your host (i.e. D:\\Downloads). This path is used for *arr to find your downloads.")]
-    public String MappedPath { get; set; } = @"C:\Downloads";
+    public String MappedPath { get; set; } = @"/mnt/symlinks";
 
     [DisplayName("Download speed (in MB/s) (only used for the Internal Downloader)")]
     [Description("Maximum download speed in Megabytes per second. When set to 0 unlimited speed is used.")]
@@ -97,7 +97,7 @@ public class DbSettingsDownloadClient
 
     [DisplayName("Parallel connections per download (only used for the Internal Downloader)")]
     [Description("Maximum amount of parallel threads that are used to download a single file to your host. If set to 0 no parallel downloading will be done.")]
-    public Int32 ParallelCount { get; set; } = 8;
+    public Int32 ParallelCount { get; set; } = 100;
 
     [DisplayName("Chunk Count")]
     [Description("Split the downloaded file in this amount of chunks.")]
@@ -162,7 +162,7 @@ or
 
     [DisplayName("Automatically delete downloads removed from provider")]
     [Description("When selected, cancel and delete downloads that have been removed from your debrid provider.")]
-    public Boolean AutoDelete { get; set; } = false;
+    public Boolean AutoDelete { get; set; } = true;
 
     [DisplayName("Connection Timeout")]
     [Description("Timeout in seconds to make a connection to the provider. Increase if you experience timeouts in the logs.")]
@@ -170,7 +170,7 @@ or
 
     [DisplayName("Check Interval")]
     [Description("The interval to check the torrents info on the providers API. Minumum is 3 seconds. When there are no active downloads this limit is increased * 3.")]
-    public Int32 CheckInterval { get; set; } = 10;
+    public Int32 CheckInterval { get; set; } = 3;
 
     [DisplayName("Auto Import Defaults")]
     public DbSettingsDefaultsWithCategory Default { get; set; } = new();
@@ -231,7 +231,7 @@ public class DbSettingsDefaults
 
     [DisplayName("Minimum file size to download")]
     [Description("Files that are smaller than this setting are skipped and not downloaded. When set to 0 all files are downloaded. When downloading from Radarr or Sonarr it's recommended to keep this setting at atleast a few MB to avoid the debrid provider having to re-download the torrent.")]
-    public Int32 MinFileSize { get; set; } = 0;
+    public Int32 MinFileSize { get; set; } = 2;
 
     [DisplayName("Include files")]
     [Description("Select only the files that are matching this regular expression. Only use this setting OR the Exclude files setting, not both.")]
@@ -243,7 +243,7 @@ public class DbSettingsDefaults
 
     [DisplayName("Automatic retry torrent")]
     [Description("When a single download has failed multiple times (see setting above) or when the torrent itself received an error it will retry the full torrent this many times before marking it failed.")]
-    public Int32 TorrentRetryAttempts { get; set; } = 1;
+    public Int32 TorrentRetryAttempts { get; set; } = 15;
 
     [DisplayName("Automatic retry downloads")]
     [Description("When a single download fails it will retry it this many times before marking it as failed.")]
@@ -251,7 +251,7 @@ public class DbSettingsDefaults
 
     [DisplayName("Delete download when in error")]
     [Description("When a download has been in error for this many minutes, delete it from the provider and the client. 0 to disable.")]
-    public Int32 DeleteOnError { get; set; } = 0;
+    public Int32 DeleteOnError { get; set; } = 10;
 
     [DisplayName("Torrent maximum lifetime")]
     [Description("The maximum lifetime of a torrent in minutes. When this time has passed, mark the torrent as error. If the torrent is completed and has downloads, the lifetime setting will not apply. 0 to disable.")]
