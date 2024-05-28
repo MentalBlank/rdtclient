@@ -5,6 +5,8 @@ using SharpCompress.Archives;
 using SharpCompress.Archives.Rar;
 using SharpCompress.Archives.Zip;
 using SharpCompress.Common;
+using System;
+using System.IO.Compression;
 
 namespace RdtClient.Service.Services;
 
