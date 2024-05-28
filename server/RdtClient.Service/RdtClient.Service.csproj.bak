@@ -1,0 +1,28 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>net8.0</TargetFramework>
+    <Nullable>enable</Nullable>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <LangVersion>latest</LangVersion>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <FrameworkReference Include="Microsoft.AspNetCore.App" />
+    <PackageReference Include="AllDebrid.NET" Version="1.0.12" />
+    <PackageReference Include="Aria2.NET" Version="1.0.5" />
+    <PackageReference Include="Downloader" Version="3.0.6" />
+    <PackageReference Include="Downloader.NET" Version="1.0.12" />
+    <PackageReference Include="MonoTorrent" Version="2.0.7" />
+    <PackageReference Include="Premiumize.NET" Version="1.0.4" />
+    <PackageReference Include="RD.NET" Version="2.1.4" />
+    <PackageReference Include="Serilog" Version="3.1.1" />
+    <PackageReference Include="Serilog.Sinks.File" Version="5.0.0" />
+    <PackageReference Include="SharpCompress" Version="0.36.0" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\RdtClient.Data\RdtClient.Data.csproj" />
+  </ItemGroup>
+
+</Project>

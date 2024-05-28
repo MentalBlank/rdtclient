@@ -83,7 +83,18 @@ public class TorrentRunner(ILogger<TorrentRunner> logger, Torrents torrents, Dow
             Log($"No RealDebridApiKey set in settings");
             return;
         }
-            
+
+        if (Settings.Get.DownloadClient.Client == Data.Enums.DownloadClient.Symlink)
+        {
+            var rcloneMountPath = Settings.Get.DownloadClient.RcloneMountPath;
+
+            if (!Directory.Exists(rcloneMountPath))
+            {
+                Log($"Rclone mount path ({rcloneMountPath}) was not found!");
+                return;
+            }
+        }
+
         var settingDownloadLimit = Settings.Get.General.DownloadLimit;
         if (settingDownloadLimit < 1)
         {
@@ -101,16 +112,6 @@ public class TorrentRunner(ILogger<TorrentRunner> logger, Torrents torrents, Dow
         {
             logger.LogError("No DownloadPath set in settings");
             return;
-        }
-
-        if (Settings.Get.DownloadClient.Client == Data.Enums.DownloadClient.Symlink)
-        {
-            var rcloneMountPath = Settings.Get.DownloadClient.RcloneMountPath;
-
-            if (!Directory.Exists(rcloneMountPath))
-            {
-                throw new($"Rclone mount path ({rcloneMountPath}) was not found!");
-            }
         }
 
         var sw = new Stopwatch();
@@ -402,6 +403,8 @@ public class TorrentRunner(ILogger<TorrentRunner> logger, Torrents torrents, Dow
 
                     if (ActiveDownloadClients.TryAdd(download.DownloadId, downloadClient))
                     {
+                    	// Small delay not to spam the hell out of debrid service api...
+                    	await Task.Delay(100);
                         Log($"Starting download", download, torrent);
 
                         try
@@ -459,6 +462,7 @@ public class TorrentRunner(ILogger<TorrentRunner> logger, Torrents torrents, Dow
 
                     var extension = Path.GetExtension(fileName);
 
+<<<<<<< Updated upstream
 					if (extension == ".rar" || extension == ".zip" && torrent.DownloadClient == Data.Enums.DownloadClient.Symlink)
                     {
 						await downloads.UpdateError(download.DownloadId, "Will not unzip with SymlinkDownloader!");
@@ -467,6 +471,17 @@ public class TorrentRunner(ILogger<TorrentRunner> logger, Torrents torrents, Dow
 					}
                     if ((extension != ".rar" && extension != ".zip") ||
                         torrent.DownloadClient == Data.Enums.DownloadClient.Symlink)
+=======
+                    if(torrent.DownloadClient == Data.Enums.DownloadClient.Symlink)
+					{
+                        await downloads.UpdateError(download.DownloadId, "Compressed file.");
+                        await downloads.UpdateUnpackingStarted(download.DownloadId, download.UnpackingStarted);
+                        await downloads.UpdateUnpackingFinished(download.DownloadId, download.UnpackingFinished);
+                        await downloads.UpdateCompleted(download.DownloadId, download.Completed);
+
+                        continue;
+					} else if (extension != ".rar" && extension != ".zip")
+>>>>>>> Stashed changes
                     {
                         Log($"No need to unpack, setting it as unpacked", download, torrent);
 
@@ -608,6 +623,54 @@ public class TorrentRunner(ILogger<TorrentRunner> logger, Torrents torrents, Dow
                                     break;
                             }
                         }
+                        
+                        if (torrent.Category.ToLower() == "sonarr")
+                        {
+                            string seriesName = ExtractSeriesNameFromRdName(torrent.RdName, torrent.Category);
+                            Log($"Nom de la série (Sonarr) : {seriesName}");
+                            int? seriesId = await GetSerieIdFromNameAsync(seriesName, torrent.Category);
+                            int? theTvdbId = null;
+                            theTvdbId = await GetSerieIdFromNameAsync(seriesName, torrent.Category);
+                            Log($"Numero ID TVDB : {theTvdbId }");
+                            await AddSeriesToSonarr(theTvdbId, seriesName, torrent.Category, Settings.Get.General.RadarrSonarrInstanceConfigPath);
+                        }
+                        else if (torrent.Category.ToLower() == "radarr")
+                        {
+                            string seriesName = ExtractSeriesNameFromRdName(torrent.RdName, torrent.Category);
+                            Log($"Nom du Film (Radarr) : {seriesName}");
+                            int? seriesId = await GetMovieIdFromNameAsync(seriesName, torrent.Category, Settings.Get.General.RadarrSonarrInstanceConfigPath);
+                            int? theTvdbId = null;
+                            theTvdbId = await GetMovieIdFromNameAsync(seriesName, torrent.Category, Settings.Get.General.RadarrSonarrInstanceConfigPath);
+                            Log($"Numero ID TMDB : {theTvdbId }");
+                            await AddMovieToRadarr(theTvdbId, seriesName, torrent.Category, Settings.Get.General.RadarrSonarrInstanceConfigPath);
+                        }
+                        else
+                        {
+                        Log($"Catégorie de torrent inconnue : {torrent.Category}");
+                        }
+
+                        if (!String.IsNullOrWhiteSpace(Settings.Get.General.RadarrSonarrInstanceConfigPath))
+                        {
+                            await TryRefreshMonitoredDownloadsAsync(torrent.Category, Settings.Get.General.RadarrSonarrInstanceConfigPath);
+                        }
+
+                        if (!String.IsNullOrWhiteSpace(Settings.Get.General.CopyAddedTorrents))
+                        {
+                            var sourceFilePath = Path.Combine(Settings.Get.DownloadClient.MappedPath, "tempTorrentsFiles", $"{torrent.RdName}.torrent");
+                            var targetFilePath = Path.Combine(Settings.Get.General.CopyAddedTorrents, $"{torrent.RdName}.torrent");
+
+                            _logger.LogInformation($"Attempting to move file {torrent.RdName}.torrent");
+
+                            if (File.Exists(sourceFilePath))
+                            {
+                                if (File.Exists(targetFilePath))
+                                {
+                                    File.Delete(targetFilePath);
+                                }
+                                File.Move(sourceFilePath, targetFilePath);
+                                _logger.LogInformation($"Moved {torrent.RdName}.torrent from tempTorrentsFiles to the final directory.");
+                            }
+                        }
 
 						if (!String.IsNullOrWhiteSpace(Settings.Get.General.CopyAddedTorrents))
                         {
@@ -676,6 +739,369 @@ public class TorrentRunner(ILogger<TorrentRunner> logger, Torrents torrents, Dow
             Log($"TorrentRunner Tick End (took {sw.ElapsedMilliseconds}ms)");
         }
     }
+
+private async Task<int?> GetSerieIdFromNameAsync(string seriesName, string category)
+{
+    try
+    {
+        string searchUrl = $"https://api.tvmaze.com/search/shows?q={HttpUtility.UrlEncode(seriesName)}";
+
+        using (HttpClient httpClient = new HttpClient())
+        {
+            HttpResponseMessage response = await httpClient.GetAsync(searchUrl);
+
+            if (response.IsSuccessStatusCode)
+            {
+                string jsonResponse = await response.Content.ReadAsStringAsync();
+
+                JsonDocument jsonDoc = JsonDocument.Parse(jsonResponse);
+                JsonElement root = jsonDoc.RootElement;
+
+                if (root.GetArrayLength() == 0)
+                {
+                    return null;
+                }
+
+                JsonElement firstElement = root[0];
+
+                if (firstElement.TryGetProperty("show", out JsonElement showElement))
+                {
+                    if (showElement.TryGetProperty("externals", out JsonElement externalsElement))
+                    {
+                        if (externalsElement.TryGetProperty("thetvdb", out JsonElement tvdbElement))
+                        {
+                            if (tvdbElement.ValueKind == JsonValueKind.Number)
+                            {
+                                return tvdbElement.GetInt32();
+                            }
+                        }
+                    }
+                }
+
+                return null;
+                }
+            else
+            {
+                _logger.LogError($"La requête API TVMaze a échoué : {response.ReasonPhrase}");
+                return null;
+            }
+        }
+    }
+    catch (Exception ex)
+    {
+        _logger.LogError($"Une erreur est survenue lors de la recherche de l'ID de la Série : {ex.Message}");
+        return null;
+    }
+}
+
+private async Task<int?> GetMovieIdFromNameAsync(string seriesName, string categoryInstance, string configFilePath)
+{
+    try
+    {
+        var apiConfig = await GetApiConfigAsync(categoryInstance, configFilePath); // load comme ça
+        if (apiConfig == null)
+        {
+            return null;
+        }
+
+        string searchUrl = $"https://api.themoviedb.org/3/search/movie?api_key={apiConfig.Value.TmdbApi}&query={HttpUtility.UrlEncode(seriesName)}";
+
+        using (HttpClient httpClient = new HttpClient())
+        {
+            HttpResponseMessage response = await httpClient.GetAsync(searchUrl);
+
+            if (response.IsSuccessStatusCode)
+            {
+                string jsonResponse = await response.Content.ReadAsStringAsync();
+
+                dynamic result = JObject.Parse(jsonResponse);
+                int? seriesId = result.results[0]?.id;
+
+                return seriesId; // Retourne l'ID de la série (peut être null si non trouvé)
+            }
+            else
+            {
+                _logger.LogError($"La requête API TMDb a échoué : {response.ReasonPhrase}");
+                return null; // Retourne null en cas d'échec de la requête
+            }
+        }
+    }
+    catch (Exception ex)
+    {
+        _logger.LogError($"Une erreur est survenue lors de la recherche de l'ID du Film : {ex.Message}");
+        return null; // Retourne null en cas d'erreur
+    }
+}
+
+public class TvMazeSearchResult
+{
+    public TvMazeShow Show { get; set; }
+}
+
+public class TvMazeShow
+{
+    public TvMazeExternals Externals { get; set; }
+}
+
+public class TvMazeExternals
+{
+    public string TheTvdb { get; set; }
+}
+
+public string ExtractSeriesNameFromRdName(string rdName, string category)
+{
+    if (string.IsNullOrWhiteSpace(rdName))
+    {
+        _logger.LogError("Le nom du fichier est vide ou null.");
+        return null;
+    }
+
+    _logger.LogInformation($"Nom du fichier : {rdName}");
+
+    rdName = rdName.Replace(".", " ");
+    _logger.LogInformation($"Nom du fichier après remplacement des points : {rdName}");
+
+    rdName = Regex.Replace(rdName, @"^\w\s+", " ");
+    _logger.LogInformation($"Nom du fichier après remplacement des caractères spéciaux : {rdName}");
+
+    rdName = Regex.Replace(rdName, @"\[.*?\]", "");
+    _logger.LogInformation($"Nom du fichier après exclusion du contenu entre crochets : {rdName}");
+
+    if (rdName.EndsWith(" mkv", StringComparison.OrdinalIgnoreCase))
+    {
+        rdName = rdName.Substring(0, rdName.Length - 4); 
+        _logger.LogInformation($"Nom du fichier après exclusion de l'extension mkv : {rdName}");
+    }
+
+    // A cet endroit je peux mettre des exclusions de mots
+    string seriesPattern = @"^(.+?)(?=\d{4}\sS\d{2}|Saison|Complete|Integrale|\d|S\d)";
+
+    Match match = Regex.Match(rdName, seriesPattern);
+
+    if (!match.Success)
+    {
+        _logger.LogError("Impossible de trouver le titre de la série.");
+        return null;
+    }
+
+    string seriesName = match.Groups[1].Value.Trim();
+    return seriesName;
+}
+
+private async Task<bool> AddSeriesToSonarr(int? theTvdbId, string seriesName, string categoryInstance, string configFilePath)
+{
+    try
+    {
+        var apiConfig = await GetApiConfigAsync(categoryInstance, configFilePath); // Charger la configuration API
+
+        if (apiConfig == null)
+        {
+            _logger.LogError("La configuration API n'a pas pu être récupérée.");
+            return false;
+        }
+
+        // Débogage : afficher les valeurs de ApiKey et Host
+        _logger.LogDebug($"ApiKey : {apiConfig.Value.ApiKey}");
+        _logger.LogDebug($"Host : {apiConfig.Value.Host}");
+        _logger.LogDebug($"RootFolderPath : {apiConfig.Value.RootFolderPath}");
+        _logger.LogDebug($"qualityProfileId : {apiConfig.Value.qualityProfileId}");
+
+        if (!theTvdbId.HasValue || string.IsNullOrWhiteSpace(seriesName))
+        {
+            _logger.LogError("Impossible d'ajouter la Série : ID TheTVDB ou nom de la Série manquante.");
+            return false;
+        }
+
+        _httpClient.DefaultRequestHeaders.Clear();
+        _httpClient.DefaultRequestHeaders.Add("X-Api-Key", apiConfig.Value.ApiKey);
+
+        var requestData = new
+        {
+            TvdbId = theTvdbId.Value,
+            title = seriesName,
+            qualityProfileId = apiConfig.Value.qualityProfileId,
+            RootFolderPath = apiConfig.Value.RootFolderPath,
+            monitored = true
+        };
+
+        var json = JsonSerializer.Serialize(requestData);
+        var data = new StringContent(json, Encoding.UTF8, "application/json");
+
+        var response = await _httpClient.PostAsync($"{apiConfig.Value.Host}/api/v3/series", data);
+
+
+        if (response.IsSuccessStatusCode)
+        {
+            _logger.LogInformation("Série ajouté avec succès à Sonarr.");
+            return true;
+        }
+        else
+        {
+            var responseContent = await response.Content.ReadAsStringAsync();
+            _logger.LogDebug($"Contenu de la réponse : {responseContent}");
+                if(responseContent.Contains("This series has already been added"))
+                {
+                    _logger.LogDebug("La série existe déjà dans Sonarr.");
+                }
+                else
+                {
+                    _logger.LogError($"Échec de l'ajout de la série à Sonarr : {response.ReasonPhrase}. Contenu de la réponse : {responseContent}");
+                }
+
+            return false;
+        }
+    }
+    catch (Exception ex)
+    {
+        _logger.LogError($"Erreur lors de l'ajout du film à Sonarr : {ex.Message}");
+        return false;
+    }
+}
+
+private async Task<bool> AddMovieToRadarr(int? theTvdbId, string seriesName, string categoryInstance, string configFilePath)
+{
+    try
+    {
+        var apiConfig = await GetApiConfigAsync(categoryInstance, configFilePath); // Charger la configuration API
+
+        if (apiConfig == null)
+        {
+            _logger.LogError("La configuration API n'a pas pu être récupérée.");
+            return false;
+        }
+
+        // Débogage : afficher les valeurs de ApiKey et Host
+        _logger.LogDebug($"ApiKey : {apiConfig.Value.ApiKey}");
+        _logger.LogDebug($"Host : {apiConfig.Value.Host}");
+        _logger.LogDebug($"RootFolderPath : {apiConfig.Value.RootFolderPath}");
+        _logger.LogDebug($"qualityProfileId : {apiConfig.Value.qualityProfileId}");
+
+        if (!theTvdbId.HasValue || string.IsNullOrWhiteSpace(seriesName))
+        {
+            _logger.LogError("Impossible d'ajouter le film à Radarr : ID TheTVDB ou nom du film manquant.");
+            return false;
+        }
+
+        var requestData = new
+        {
+            tmdbId = theTvdbId.Value,
+            title = seriesName,
+            qualityProfileId = apiConfig.Value.qualityProfileId,
+            RootFolderPath = apiConfig.Value.RootFolderPath,
+            monitored = true
+        };
+
+        var json = JsonSerializer.Serialize(requestData);
+        var data = new StringContent(json, Encoding.UTF8, "application/json");
+
+        _httpClient.DefaultRequestHeaders.Clear();
+        _httpClient.DefaultRequestHeaders.Add("X-Api-Key", apiConfig.Value.ApiKey);
+        
+        var response = await _httpClient.PostAsync($"{apiConfig.Value.Host}/api/v3/movie", data);
+
+        if (response.IsSuccessStatusCode)
+        {
+            _logger.LogInformation("Film ajouté avec succès à Radarr.");
+            return true;
+        }
+        else
+        {
+            var responseContent = await response.Content.ReadAsStringAsync();
+                if(responseContent.Contains("This movie has already been added"))
+                {
+                    _logger.LogDebug("Le Film existe déjà dans Radarr.");
+                }
+                else
+                {
+                    _logger.LogError($"Échec de l'ajout de la série à Radarr : {response.ReasonPhrase}. Contenu de la réponse : {responseContent}");
+                }
+
+            return false;
+        }
+    }
+    catch (Exception ex)
+    {
+        _logger.LogError($"Erreur lors de l'ajout du film à Radarr : {ex.Message}");
+        return false;
+    }
+}
+
+private async Task<bool> TryRefreshMonitoredDownloadsAsync(string categoryInstance, string configFilePath)
+{
+    try
+    {
+        var apiConfig = await GetApiConfigAsync(categoryInstance, configFilePath); // load comme ça
+        if (apiConfig == null)
+        {
+            return false;
+        }
+
+        var data = new StringContent("{\"name\":\"RefreshMonitoredDownloads\"}", Encoding.UTF8, "application/json");
+        _httpClient.DefaultRequestHeaders.Clear();
+        _httpClient.DefaultRequestHeaders.Add("X-Api-Key", apiConfig.Value.ApiKey); // utilisé comme ça ici
+        var response = await _httpClient.PostAsync($"{apiConfig.Value.Host}/api/v3/command", data); // et ici pour host
+
+        if (response.IsSuccessStatusCode)
+        {
+            var responseBody = await response.Content.ReadAsStringAsync();
+            _logger.LogInformation($"Réponse de l'API : {responseBody}");
+            return true;
+        }
+        else
+        {
+            _logger.LogError("La requête API a échoué.");
+            return false;
+        }
+    }
+    catch (Exception ex)
+    {
+        _logger.LogError($"Une erreur est survenue : {ex.Message}");
+        return false;
+    }
+}
+
+public struct ApiConfig 
+{
+    public string Host { get; set; }
+    public string ApiKey { get; set; }
+    public string RootFolderPath { get; set; }
+    public string qualityProfileId { get; set; }
+    public string TmdbApi { get; set; }
+}
+
+private async Task<ApiConfig?> GetApiConfigAsync(string categoryInstance, string configFilePath)
+{
+    try
+    {
+        string jsonString = await File.ReadAllTextAsync(configFilePath);
+        JsonDocument doc = JsonDocument.Parse(jsonString);
+
+        if (!doc.RootElement.TryGetProperty(categoryInstance, out JsonElement category))
+        {
+            _logger.LogError($"La catégorie {categoryInstance} n'est pas trouvée dans le fichier de configuration.");
+            return null;
+        }
+
+        var host = category.GetProperty("Host").GetString();
+        var apiKey = category.GetProperty("ApiKey").GetString();
+        var folder = category.GetProperty("RootFolderPath").GetString();
+        var quality = category.GetProperty("qualityProfileId").GetString();
+        var tmdb = categoryInstance == "radarr" ? category.GetProperty("TmdbApi").GetString() : null;
+
+        if (string.IsNullOrEmpty(host) || string.IsNullOrEmpty(apiKey) || string.IsNullOrEmpty(folder) || string.IsNullOrEmpty(quality) ||
+            (categoryInstance == "radarr" && string.IsNullOrEmpty(tmdb)))
+        {
+            return null;
+        }
+
+        return new ApiConfig { Host = host, ApiKey = apiKey, RootFolderPath = folder, qualityProfileId = quality, TmdbApi = tmdb };
+    }
+    catch (Exception ex)
+    {
+        _logger.LogError($"Une erreur est survenue lors de la lecture du fichier de configuration : {ex.Message}");
+        return null;
+    }
+}
 
     private void Log(String message, Download? download, Torrent? torrent)
     {

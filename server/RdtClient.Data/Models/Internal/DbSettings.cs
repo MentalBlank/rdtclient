@@ -36,7 +36,7 @@ public class DbSettingsGeneral
 {
     [DisplayName("Log level")]
     [Description("Recommended level is Warning, set to Debug to get the most info.")]
-    public LogLevel LogLevel { get; set; } = LogLevel.Warning;
+    public LogLevel LogLevel { get; set; } = LogLevel.Error;
 
     [DisplayName("Maximum parallel downloads")]
     [Description("Maximum amount of torrents that get downloaded to your host at the same time.")]
@@ -48,7 +48,7 @@ public class DbSettingsGeneral
 
     [DisplayName("Categories")]
     [Description("Expose these categories through the QBittorrent API. Define multiple categories by separating them with a comma.")]
-    public String? Categories { get; set; } = "radarr,sonarr,radarr4k,sonarr4k,radarr4kdv,sonarr4kdv,radarranime,sonarranime";
+    public String? Categories { get; set; } = "radarr,sonarr";
 
     [DisplayName("Run external program on torrent completion")]
     [Description("Path to the executable to run when the torrent and all downloads are finished. No arguments should be passed here.When running in Docker, this command will run on your docker instance!")]
@@ -78,6 +78,18 @@ Supports the following parameters:
     [DisplayName("Keep a copy of .torrent files sent to seed client")]
     [Description("[Only with Symlink Downloader] When a torrent file is added, keep a copy in RDT_Download_Client_Mapped_Path/TorrentBlachole/ImportCategory directory.")]
     public Boolean KeepCopyAddedTorrents { get; set; } = false;
+<<<<<<< Updated upstream
+=======
+
+    [DisplayName("Notify Arrs of RDT download completion")]
+    [Description("Set the destination path for the Radarr and Sonarr instance JSON configuration file (template available at /data/db/instances.json). This addition speeds up the final import by notifying Radarr / Sonarr of a download's completion by RDT, rather than waiting for them to check on their own.")]
+    public String? RadarrSonarrInstanceConfigPath { get; set; } = "/data/db/instances.json";
+
+    [DisplayName("Trigger Rclone refresh for speed up file discovery")]
+    [Description("Allows users to define a customizable command, such as \"rc vfs/refresh recursive=true --rc-addr=172.17.0.1:5572\", to trigger an Rclone refresh operation before initiating the file discovery process. This feature aims to expedite the discovery by performing an immediate refresh, instead of relying on Rclone's periodic automatic refresh.")]
+    public String? RcloneRefreshCommand { get; set; } = "rc vfs/refresh recursive=true --rc-addr=172.19.0.247:5572";
+
+>>>>>>> Stashed changes
 }
 
 public class DbSettingsDownloadClient
@@ -166,7 +178,7 @@ or
 
     [DisplayName("Automatically delete downloads removed from provider")]
     [Description("When selected, cancel and delete downloads that have been removed from your debrid provider.")]
-    public Boolean AutoDelete { get; set; } = true;
+    public Boolean AutoDelete { get; set; } = false;
 
     [DisplayName("Connection Timeout")]
     [Description("Timeout in seconds to make a connection to the provider. Increase if you experience timeouts in the logs.")]

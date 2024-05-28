@@ -87,7 +87,7 @@ export class TorrentStatusPipe implements PipeTransform {
     switch (torrent.rdStatus) {
       case RealDebridStatus.Downloading:
         if (torrent.rdSeeders < 1) {
-          return `Torrent stalled`
+          return `No Seeders`
         }
         const speed = this.pipe.transform(torrent.rdSpeed, 'filesize');
         return `Torrent downloading (${torrent.rdProgress}% - ${speed}/s)`;
