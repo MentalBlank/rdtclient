@@ -47,8 +47,6 @@ public class UnpackClient(Download download, String destinationPath)
     {
         _cancellationTokenSource.Cancel();
     }
-<<<<<<< Updated upstream
-=======
 
     private async Task Unpack(String filePath, CancellationToken cancellationToken)
     {
@@ -172,5 +170,4 @@ public class UnpackClient(Download download, String destinationPath)
 
         GC.Collect();
     }
->>>>>>> Stashed changes
 }

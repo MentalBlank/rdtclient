@@ -91,14 +91,12 @@ public class SymlinkDownloader(String uri, String destinationPath, String path) 
                 _logger.Debug($"Searching {rcloneMountPath} for {fileName} (attempt #{retryCount})...");
 
                 file = FindFile(rcloneMountPath, potentialFilePaths, fileName);
-<<<<<<< Updated upstream
 
-=======
 				if (!String.IsNullOrWhiteSpace(Settings.Get.General.RcloneRefreshCommand))
 	            {
 	                RefreshRclone();
 	            }
->>>>>>> Stashed changes
+				
                 if (file == null && searchSubDirectories)
                 {
                     var subDirectories = Directory.GetDirectories(rcloneMountPath, "*.*", SearchOption.TopDirectoryOnly);

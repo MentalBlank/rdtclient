@@ -462,16 +462,6 @@ public class TorrentRunner(ILogger<TorrentRunner> logger, Torrents torrents, Dow
 
                     var extension = Path.GetExtension(fileName);
 
-<<<<<<< Updated upstream
-					if (extension == ".rar" || extension == ".zip" && torrent.DownloadClient == Data.Enums.DownloadClient.Symlink)
-                    {
-						await downloads.UpdateError(download.DownloadId, "Will not unzip with SymlinkDownloader!");
-                        await downloads.UpdateCompleted(download.DownloadId, DateTimeOffset.UtcNow);
-                        continue;
-					}
-                    if ((extension != ".rar" && extension != ".zip") ||
-                        torrent.DownloadClient == Data.Enums.DownloadClient.Symlink)
-=======
                     if(torrent.DownloadClient == Data.Enums.DownloadClient.Symlink)
 					{
                         await downloads.UpdateError(download.DownloadId, "Compressed file.");
@@ -480,8 +470,7 @@ public class TorrentRunner(ILogger<TorrentRunner> logger, Torrents torrents, Dow
                         await downloads.UpdateCompleted(download.DownloadId, download.Completed);
 
                         continue;
-					} else if (extension != ".rar" && extension != ".zip")
->>>>>>> Stashed changes
+					} else if (extension != ".rar" && extension != ".zip" && torrent.DownloadClient)
                     {
                         Log($"No need to unpack, setting it as unpacked", download, torrent);
 
