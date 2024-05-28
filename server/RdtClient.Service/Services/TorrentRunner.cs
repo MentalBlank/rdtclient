@@ -812,38 +812,38 @@ public class TvMazeShow
 
 public class TvMazeExternals
 {
-    public string TheTvdb { get; set; }
+    public string? TheTvdb { get; set; }
 }
 
-public string ExtractSeriesNameFromRdName(string rdName, string category)
+public string ExtractSeriesNameFromRdName(string RdName, string category)
 {
-    if (string.IsNullOrWhiteSpace(rdName))
+    if (string.IsNullOrWhiteSpace(RdName))
     {
         logger.LogError("Le nom du fichier est vide ou null.");
         return null;
     }
 
-    logger.LogInformation($"Nom du fichier : {rdName}");
+    logger.LogInformation($"Nom du fichier : {RdName}");
 
-    rdName = rdName.Replace(".", " ");
-    logger.LogInformation($"Nom du fichier après remplacement des points : {rdName}");
+    RdName = RdName.Replace(".", " ");
+    logger.LogInformation($"Nom du fichier après remplacement des points : {RdName}");
 
-    rdName = Regex.Replace(rdName, @"^\w\s+", " ");
-    logger.LogInformation($"Nom du fichier après remplacement des caractères spéciaux : {rdName}");
+    RdName = Regex.Replace(RdName, @"^\w\s+", " ");
+    logger.LogInformation($"Nom du fichier après remplacement des caractères spéciaux : {RdName}");
 
-    rdName = Regex.Replace(rdName, @"\[.*?\]", "");
-    logger.LogInformation($"Nom du fichier après exclusion du contenu entre crochets : {rdName}");
+    RdName = Regex.Replace(RdName, @"\[.*?\]", "");
+    logger.LogInformation($"Nom du fichier après exclusion du contenu entre crochets : {RdName}");
 
-    if (rdName.EndsWith(" mkv", StringComparison.OrdinalIgnoreCase))
+    if (RdName.EndsWith(" mkv", StringComparison.OrdinalIgnoreCase))
     {
-        rdName = rdName.Substring(0, rdName.Length - 4); 
-        logger.LogInformation($"Nom du fichier après exclusion de l'extension mkv : {rdName}");
+        RdName = RdName.Substring(0, RdName.Length - 4); 
+        logger.LogInformation($"Nom du fichier après exclusion de l'extension mkv : {RdName}");
     }
 
     // A cet endroit je peux mettre des exclusions de mots
     string seriesPattern = @"^(.+?)(?=\d{4}\sS\d{2}|Saison|Complete|Integrale|\d|S\d)";
 
-    Match match = Regex.Match(rdName, seriesPattern);
+    Match match = Regex.Match(RdName, seriesPattern);
 
     if (!match.Success)
     {
