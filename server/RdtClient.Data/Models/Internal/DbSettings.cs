@@ -78,8 +78,6 @@ Supports the following parameters:
     [DisplayName("Keep a copy of .torrent files sent to seed client")]
     [Description("[Only with Symlink Downloader] When a torrent file is added, keep a copy in RDT_Download_Client_Mapped_Path/TorrentBlachole/ImportCategory directory.")]
     public Boolean KeepCopyAddedTorrents { get; set; } = false;
-<<<<<<< Updated upstream
-=======
 
     [DisplayName("Notify Arrs of RDT download completion")]
     [Description("Set the destination path for the Radarr and Sonarr instance JSON configuration file (template available at /data/db/instances.json). This addition speeds up the final import by notifying Radarr / Sonarr of a download's completion by RDT, rather than waiting for them to check on their own.")]
@@ -89,7 +87,6 @@ Supports the following parameters:
     [Description("Allows users to define a customizable command, such as \"rc vfs/refresh recursive=true --rc-addr=172.17.0.1:5572\", to trigger an Rclone refresh operation before initiating the file discovery process. This feature aims to expedite the discovery by performing an immediate refresh, instead of relying on Rclone's periodic automatic refresh.")]
     public String? RcloneRefreshCommand { get; set; } = "rc vfs/refresh recursive=true --rc-addr=172.19.0.247:5572";
 
->>>>>>> Stashed changes
 }
 
 public class DbSettingsDownloadClient
