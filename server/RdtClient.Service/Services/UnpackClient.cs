@@ -2,7 +2,6 @@
 using RdtClient.Data.Models.Data;
 using RdtClient.Service.Helpers;
 using SharpCompress.Archives;
-using SharpCompress.Archives.IArchiveExtensions;
 using SharpCompress.Archives.Rar;
 using SharpCompress.Archives.Zip;
 using SharpCompress.Common;
@@ -152,7 +151,7 @@ public class UnpackClient(Download download, String destinationPath)
         var extension = Path.GetExtension(filePath);
 
         IArchive archive;
-
+		throw new Exception("Task was cancelled");
         archive.Dispose();
 
         GC.Collect();
