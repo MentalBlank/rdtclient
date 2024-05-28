@@ -129,8 +129,8 @@ http://127.0.0.1:6800/jsonrpc.")]
     public String? Aria2cDownloadPath { get; set; } = null;
 
     [DisplayName("Rclone mount path (only used for the Symlink Downloader)")]
-    [Description("Path where Rclone is mounted. Required for Symlink Downloader.")]
-    public String RcloneMountPath { get; set; } = "/mnt/rd/";
+    [Description("Path where Rclone is mounted. Required for Symlink Downloader. Suffix this path with a * to search subdirectories too.")]
+    public String RcloneMountPath { get; set; } = "/mnt/remote/realdebrid/torrents";
 
     [DisplayName("Log level")]
     [Description("Only set when trying to debug a download client, can generate a lot of logs.")]

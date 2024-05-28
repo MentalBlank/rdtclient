@@ -4,6 +4,88 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [2.0.78] - 2024-05-04
+### Changed
+- Fixed Aria2c download path issue when a category is set.
+
+## [2.0.77] - 2024-05-03
+### Changed
+- Fixed Aria2c download path issue when a category is set.
+
+## [2.0.76] - 2024-05-02
+### Changed
+- Fixed issues with the qBittorrent endpoint.
+- Fixed issue that could crash the torrent runner.
+
+## [2.0.75] - 2024-04-24
+### Changed
+- Fixed broken recursive symlink searching.
+
+## [2.0.74] - 2024-04-20
+### Added
+- Added support for symlink recursive searching.
+
+## [2.0.73] - 2024-04-11
+### Changed
+- Fixed another issue with the symlinker and file resolver.
+
+## [2.0.72] - 2024-04-10
+### Changed
+- Fixed issue with download speed test when the symlink downloader is selected.
+
+## [2.0.71] - 2024-04-10
+### Changed
+- Fixed symlink path matching bug.
+
+## [2.0.70] - 2024-04-10
+### Added
+- Added symlink logging.
+
+## [2.0.69] - 2024-04-09
+### Added
+- Added sorting to the GUI columns.
+### Changed
+- Fixed reloading on the /settings and other pages.
+
+## [2.0.68] - 2024-04-09
+### Changed
+- Base Href middleware fix that throws error when a response is not 200.
+
+## [2.0.67] - 2024-04-09
+### Changed
+- Symlink fixes.
+
+## [2.0.66] - 2024-04-08
+### Changed
+- Symlink fixes and improvements.
+
+## [2.0.65] - 2024-04-07
+### Added
+- Added option to configure the buffersize for the internal downloader.
+
+## [2.0.64] - 2024-04-06
+### Added
+- Add log level Verbose and add logging for the internal downloader, only works when both log levels are set to Verbose.
+
+### Changed
+- Add fixes for the symlink downloader
+- Add better indication when a torrent is stalled
+- Fixed download client selection on the torrents
+
+## [2.0.63] - 2024-03-05
+### Changed
+- When Sonarr/Radarr requests a torrent to be deleted, and its files too, then delete those files instead of ingoring it.
+
+## [2.0.62] - 2024-02-17
+### Changed
+- Fixed reporting a torrent as error when some downloads have failed but still need to be retried.
+- Fixed issue where downloads could get started over and over.
+
+## [2.0.61] - 2024-01-21
+### Added
+- Added setting to include or exclude files based on a given regex.
+- Add logging.
+
 ## [2.0.60] - 2024-01-21
 ### Changed
 - Fixed bug where downloads could get stuck in active state while deleted.

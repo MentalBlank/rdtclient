@@ -388,7 +388,7 @@ public class TorrentRunner(ILogger<TorrentRunner> logger, Torrents torrents, Dow
                     Log($"Setting download path to {downloadPath}", download, torrent);
 
                     // Start the download process
-                    var downloadClient = new DownloadClient(download, torrent, downloadPath);
+                    var downloadClient = new DownloadClient(download, torrent, downloadPath, torrent.Category);
 
                     if (ActiveDownloadClients.TryAdd(download.DownloadId, downloadClient))
                     {
@@ -449,6 +449,11 @@ public class TorrentRunner(ILogger<TorrentRunner> logger, Torrents torrents, Dow
 
                     var extension = Path.GetExtension(fileName);
 
+					if (extension == ".rar" || extension == ".zip" && torrent.DownloadClient == Data.Enums.DownloadClient.Symlink)){
+						await downloads.UpdateError(download.DownloadId, "Will not unzip with SymlinkDownloader!");
+                        await downloads.UpdateCompleted(download.DownloadId, DateTimeOffset.UtcNow);
+                        continue;
+					}
                     if ((extension != ".rar" && extension != ".zip") ||
                         torrent.DownloadClient == Data.Enums.DownloadClient.Symlink)
                     {
