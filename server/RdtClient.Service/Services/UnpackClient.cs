@@ -38,7 +38,7 @@ public class UnpackClient(Download download, String destinationPath)
         }
         catch (Exception ex)
         {
-            Error = $"Compressed file: {_torrent.RdName}";
+            Error = $"Compressed file: {_torrent.RdName} Error: {ex}";
             Finished = true;
         }
     }

@@ -468,9 +468,10 @@ public class TorrentRunner(ILogger<TorrentRunner> logger, Torrents torrents, Dow
                         await downloads.UpdateUnpackingStarted(download.DownloadId, download.UnpackingStarted);
                         await downloads.UpdateUnpackingFinished(download.DownloadId, download.UnpackingFinished);
                         await downloads.UpdateCompleted(download.DownloadId, download.Completed);
+                        await downloads.UpdateError(download.DownloadId, "Compressed file.");
 
                         continue;
-					} else if (extension != ".rar" && extension != ".zip" && torrent.DownloadClient)
+					} else if (extension != ".rar" && extension != ".zip")
                     {
                         Log($"No need to unpack, setting it as unpacked", download, torrent);
 
@@ -824,17 +825,17 @@ private async Task<int?> GetMovieIdFromNameAsync(string seriesName, string categ
 
 public class TvMazeSearchResult
 {
-    public TvMazeShow Show { get; set; }
+    public TvMazeShow? Show { get; set; }
 }
 
 public class TvMazeShow
 {
-    public TvMazeExternals Externals { get; set; }
+    public TvMazeExternals? Externals { get; set; }
 }
 
 public class TvMazeExternals
 {
-    public string TheTvdb { get; set; }
+    public string? TheTvdb { get; set; }
 }
 
 public string ExtractSeriesNameFromRdName(string rdName, string category)
