@@ -162,7 +162,7 @@ public class UnpackClient(Download download, String destinationPath)
         {
             using (var archive = RarArchive.Open(fi))
             {
-                archive.ExtractToDirectory(extractPath,)
+                archive.ExtractToDirectory(extractPath,
                                     d =>
                                     {
                                         Debug.WriteLine(d);
