@@ -142,28 +142,39 @@ public class UnpackClient(Download download, String destinationPath)
     private void Extract(String filePath, String extractPath, CancellationToken cancellationToken)
     {
         var parts = ArchiveFactory.GetFileParts(filePath);
-
         var fi = parts.Select(m => new FileInfo(m));
-
         var extension = Path.GetExtension(filePath);
 
-        IArchive archive;
         if (extension == ".zip")
         {
-            archive = ZipArchive.Open(fi);
-        }
-        else
-        {
-            archive = RarArchive.Open(fi);
-        }
-
-        archive.ExtractToDirectory(extractPath,
+            using (var archive = ZipArchive.Open(fi))
+            {
+                archive.ExtractToDirectory(extractPath,
                                    d =>
                                    {
                                        Debug.WriteLine(d);
                                        Progess = (Int32) Math.Round(d);
                                    },
                                    cancellationToken: cancellationToken);
+            }
+        }
+        else if (extension == ".rar")
+        {
+            using (var archive = RarArchive.Open(fi))
+            {
+                archive.ExtractToDirectory(extractPath,)
+                                    d =>
+                                    {
+                                        Debug.WriteLine(d);
+                                        Progess = (Int32) Math.Round(d);
+                                    },
+                                    cancellationToken: cancellationToken);
+            }
+        }
+        else
+        {
+            Error = $"Invaliud Compression {download.Link} for torrent {_torrent.RdName}: {ex.Message}";
+        }
         
         archive.Dispose();
 

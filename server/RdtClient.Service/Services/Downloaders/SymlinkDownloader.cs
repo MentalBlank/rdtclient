@@ -109,10 +109,6 @@ public class SymlinkDownloader(String uri, String destinationPath, String path) 
 
                 if (file == null)
                 {
-                	if (!String.IsNullOrWhiteSpace(Settings.Get.General.RcloneRefreshCommand))
-		            {
-		                RefreshRclone();
-		            }
                     await Task.Delay(1000 * retryCount);
                 }
                 else
