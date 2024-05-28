@@ -109,6 +109,10 @@ public class SymlinkDownloader(String uri, String destinationPath, String path) 
 
                 if (file == null)
                 {
+                	if (!String.IsNullOrWhiteSpace(Settings.Get.General.RcloneRefreshCommand))
+		            {
+		                RefreshRclone();
+		            }
                     await Task.Delay(1000 * retryCount);
                 }
                 else
@@ -214,6 +218,30 @@ public class SymlinkDownloader(String uri, String destinationPath, String path) 
             _logger.Error($"Error creating symbolic link from {sourcePath} to {symlinkPath}: {ex.Message}");
 
             return false;
+        }
+    }
+
+    private void RefreshRclone()
+    {
+        var processInfo = new ProcessStartInfo
+        {
+            FileName = "/usr/bin/rclone",
+            Arguments = Settings.Get.General.RcloneRefreshCommand,
+            RedirectStandardOutput = true,
+            RedirectStandardError = true,
+            UseShellExecute = false
+        };
+
+        using (var process = Process.Start(processInfo))
+        {
+            if (process != null)
+            {
+                process.WaitForExit();
+                var output = process.StandardOutput.ReadToEnd();
+                // var error = process.StandardError.ReadToEnd();
+                _logger.Debug($"rclone refresh output: {output}");
+               // _logger.Debug($"rclone refresh error: {error}");
+            }
         }
     }
 }
