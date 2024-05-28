@@ -648,7 +648,7 @@ public class TorrentRunner(ILogger<TorrentRunner> logger, Torrents torrents, Dow
                             var sourceFilePath = Path.Combine(Settings.Get.DownloadClient.MappedPath, "tempTorrentsFiles", $"{torrent.RdName}.torrent");
                             var targetFilePath = Path.Combine(Settings.Get.General.CopyAddedTorrents, $"{torrent.RdName}.torrent");
 
-                            _logger.LogInformation($"Attempting to move file {torrent.RdName}.torrent");
+                            logger.LogInformation($"Attempting to move file {torrent.RdName}.torrent");
 
                             if (File.Exists(sourceFilePath))
                             {
@@ -657,7 +657,7 @@ public class TorrentRunner(ILogger<TorrentRunner> logger, Torrents torrents, Dow
                                     File.Delete(targetFilePath);
                                 }
                                 File.Move(sourceFilePath, targetFilePath);
-                                _logger.LogInformation($"Moved {torrent.RdName}.torrent from tempTorrentsFiles to the final directory.");
+                                Log($"Moved {torrent.RdName}.torrent from tempTorrentsFiles to the final directory.");
                             }
                         }
 
@@ -771,14 +771,14 @@ private async Task<int?> GetSerieIdFromNameAsync(string seriesName, string categ
                 }
             else
             {
-                _logger.LogError($"La requête API TVMaze a échoué : {response.ReasonPhrase}");
+                logger.LogError($"La requête API TVMaze a échoué : {response.ReasonPhrase}");
                 return null;
             }
         }
     }
     catch (Exception ex)
     {
-        _logger.LogError($"Une erreur est survenue lors de la recherche de l'ID de la Série : {ex.Message}");
+        logger.LogError($"Une erreur est survenue lors de la recherche de l'ID de la Série : {ex.Message}");
         return null;
     }
 }
@@ -810,14 +810,14 @@ private async Task<int?> GetMovieIdFromNameAsync(string seriesName, string categ
             }
             else
             {
-                _logger.LogError($"La requête API TMDb a échoué : {response.ReasonPhrase}");
+                logger.LogError($"La requête API TMDb a échoué : {response.ReasonPhrase}");
                 return null; // Retourne null en cas d'échec de la requête
             }
         }
     }
     catch (Exception ex)
     {
-        _logger.LogError($"Une erreur est survenue lors de la recherche de l'ID du Film : {ex.Message}");
+        logger.LogError($"Une erreur est survenue lors de la recherche de l'ID du Film : {ex.Message}");
         return null; // Retourne null en cas d'erreur
     }
 }
@@ -841,25 +841,25 @@ public string ExtractSeriesNameFromRdName(string rdName, string category)
 {
     if (string.IsNullOrWhiteSpace(rdName))
     {
-        _logger.LogError("Le nom du fichier est vide ou null.");
+        logger.LogError("Le nom du fichier est vide ou null.");
         return null;
     }
 
-    _logger.LogInformation($"Nom du fichier : {rdName}");
+    Log($"Nom du fichier : {rdName}");
 
     rdName = rdName.Replace(".", " ");
-    _logger.LogInformation($"Nom du fichier après remplacement des points : {rdName}");
+    Log($"Nom du fichier après remplacement des points : {rdName}");
 
     rdName = Regex.Replace(rdName, @"^\w\s+", " ");
-    _logger.LogInformation($"Nom du fichier après remplacement des caractères spéciaux : {rdName}");
+    Log($"Nom du fichier après remplacement des caractères spéciaux : {rdName}");
 
     rdName = Regex.Replace(rdName, @"\[.*?\]", "");
-    _logger.LogInformation($"Nom du fichier après exclusion du contenu entre crochets : {rdName}");
+    Log($"Nom du fichier après exclusion du contenu entre crochets : {rdName}");
 
     if (rdName.EndsWith(" mkv", StringComparison.OrdinalIgnoreCase))
     {
         rdName = rdName.Substring(0, rdName.Length - 4); 
-        _logger.LogInformation($"Nom du fichier après exclusion de l'extension mkv : {rdName}");
+        Log($"Nom du fichier après exclusion de l'extension mkv : {rdName}");
     }
 
     // A cet endroit je peux mettre des exclusions de mots
@@ -869,7 +869,7 @@ public string ExtractSeriesNameFromRdName(string rdName, string category)
 
     if (!match.Success)
     {
-        _logger.LogError("Impossible de trouver le titre de la série.");
+        logger.LogError("Impossible de trouver le titre de la série.");
         return null;
     }
 
@@ -885,7 +885,7 @@ private async Task<bool> AddSeriesToSonarr(int? theTvdbId, string seriesName, st
 
         if (apiConfig == null)
         {
-            _logger.LogError("La configuration API n'a pas pu être récupérée.");
+            logger.LogError("La configuration API n'a pas pu être récupérée.");
             return false;
         }
 
@@ -897,7 +897,7 @@ private async Task<bool> AddSeriesToSonarr(int? theTvdbId, string seriesName, st
 
         if (!theTvdbId.HasValue || string.IsNullOrWhiteSpace(seriesName))
         {
-            _logger.LogError("Impossible d'ajouter la Série : ID TheTVDB ou nom de la Série manquante.");
+            logger.LogError("Impossible d'ajouter la Série : ID TheTVDB ou nom de la Série manquante.");
             return false;
         }
 
@@ -921,7 +921,7 @@ private async Task<bool> AddSeriesToSonarr(int? theTvdbId, string seriesName, st
 
         if (response.IsSuccessStatusCode)
         {
-            _logger.LogInformation("Série ajouté avec succès à Sonarr.");
+            Log("Série ajouté avec succès à Sonarr.");
             return true;
         }
         else
@@ -934,7 +934,7 @@ private async Task<bool> AddSeriesToSonarr(int? theTvdbId, string seriesName, st
                 }
                 else
                 {
-                    _logger.LogError($"Échec de l'ajout de la série à Sonarr : {response.ReasonPhrase}. Contenu de la réponse : {responseContent}");
+                    logger.LogError($"Échec de l'ajout de la série à Sonarr : {response.ReasonPhrase}. Contenu de la réponse : {responseContent}");
                 }
 
             return false;
@@ -942,7 +942,7 @@ private async Task<bool> AddSeriesToSonarr(int? theTvdbId, string seriesName, st
     }
     catch (Exception ex)
     {
-        _logger.LogError($"Erreur lors de l'ajout du film à Sonarr : {ex.Message}");
+        logger.LogError($"Erreur lors de l'ajout du film à Sonarr : {ex.Message}");
         return false;
     }
 }
@@ -955,7 +955,7 @@ private async Task<bool> AddMovieToRadarr(int? theTvdbId, string seriesName, str
 
         if (apiConfig == null)
         {
-            _logger.LogError("La configuration API n'a pas pu être récupérée.");
+            logger.LogError("La configuration API n'a pas pu être récupérée.");
             return false;
         }
 
@@ -967,7 +967,7 @@ private async Task<bool> AddMovieToRadarr(int? theTvdbId, string seriesName, str
 
         if (!theTvdbId.HasValue || string.IsNullOrWhiteSpace(seriesName))
         {
-            _logger.LogError("Impossible d'ajouter le film à Radarr : ID TheTVDB ou nom du film manquant.");
+            logger.LogError("Impossible d'ajouter le film à Radarr : ID TheTVDB ou nom du film manquant.");
             return false;
         }
 
@@ -990,7 +990,7 @@ private async Task<bool> AddMovieToRadarr(int? theTvdbId, string seriesName, str
 
         if (response.IsSuccessStatusCode)
         {
-            _logger.LogInformation("Film ajouté avec succès à Radarr.");
+            Log("Film ajouté avec succès à Radarr.");
             return true;
         }
         else
@@ -1002,7 +1002,7 @@ private async Task<bool> AddMovieToRadarr(int? theTvdbId, string seriesName, str
                 }
                 else
                 {
-                    _logger.LogError($"Échec de l'ajout de la série à Radarr : {response.ReasonPhrase}. Contenu de la réponse : {responseContent}");
+                    logger.LogError($"Échec de l'ajout de la série à Radarr : {response.ReasonPhrase}. Contenu de la réponse : {responseContent}");
                 }
 
             return false;
@@ -1010,7 +1010,7 @@ private async Task<bool> AddMovieToRadarr(int? theTvdbId, string seriesName, str
     }
     catch (Exception ex)
     {
-        _logger.LogError($"Erreur lors de l'ajout du film à Radarr : {ex.Message}");
+        logger.LogError($"Erreur lors de l'ajout du film à Radarr : {ex.Message}");
         return false;
     }
 }
@@ -1033,18 +1033,18 @@ private async Task<bool> TryRefreshMonitoredDownloadsAsync(string categoryInstan
         if (response.IsSuccessStatusCode)
         {
             var responseBody = await response.Content.ReadAsStringAsync();
-            _logger.LogInformation($"Réponse de l'API : {responseBody}");
+            Log($"Réponse de l'API : {responseBody}");
             return true;
         }
         else
         {
-            _logger.LogError("La requête API a échoué.");
+            logger.LogError("La requête API a échoué.");
             return false;
         }
     }
     catch (Exception ex)
     {
-        _logger.LogError($"Une erreur est survenue : {ex.Message}");
+        logger.LogError($"Une erreur est survenue : {ex.Message}");
         return false;
     }
 }
@@ -1067,7 +1067,7 @@ private async Task<ApiConfig?> GetApiConfigAsync(string categoryInstance, string
 
         if (!doc.RootElement.TryGetProperty(categoryInstance, out JsonElement category))
         {
-            _logger.LogError($"La catégorie {categoryInstance} n'est pas trouvée dans le fichier de configuration.");
+            logger.LogError($"La catégorie {categoryInstance} n'est pas trouvée dans le fichier de configuration.");
             return null;
         }
 
@@ -1087,7 +1087,7 @@ private async Task<ApiConfig?> GetApiConfigAsync(string categoryInstance, string
     }
     catch (Exception ex)
     {
-        _logger.LogError($"Une erreur est survenue lors de la lecture du fichier de configuration : {ex.Message}");
+        logger.LogError($"Une erreur est survenue lors de la lecture du fichier de configuration : {ex.Message}");
         return null;
     }
 }
