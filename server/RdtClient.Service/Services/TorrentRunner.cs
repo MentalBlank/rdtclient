@@ -692,6 +692,16 @@ public class TorrentRunner(ILogger<TorrentRunner> logger, Torrents torrents, Dow
         logger.LogDebug(message);
     }
 
+    private void Log(String message, Torrent? torrent = null)
+    {
+        if (torrent != null)
+        {
+            message = $"{message} {torrent.ToLog()}";
+        }
+
+        logger.LogDebug(message);
+    }
+
     private void LogError(String message, Download? download, Torrent? torrent)
     {
         if (download != null)
