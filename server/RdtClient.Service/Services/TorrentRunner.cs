@@ -890,10 +890,10 @@ private async Task<bool> AddSeriesToSonarr(int? theTvdbId, string seriesName, st
         }
 
         // Débogage : afficher les valeurs de ApiKey et Host
-        _logger.LogDebug($"ApiKey : {apiConfig.Value.ApiKey}");
-        _logger.LogDebug($"Host : {apiConfig.Value.Host}");
-        _logger.LogDebug($"RootFolderPath : {apiConfig.Value.RootFolderPath}");
-        _logger.LogDebug($"qualityProfileId : {apiConfig.Value.qualityProfileId}");
+        Log($"ApiKey : {apiConfig.Value.ApiKey}");
+        Log($"Host : {apiConfig.Value.Host}");
+        Log($"RootFolderPath : {apiConfig.Value.RootFolderPath}");
+        Log($"qualityProfileId : {apiConfig.Value.qualityProfileId}");
 
         if (!theTvdbId.HasValue || string.IsNullOrWhiteSpace(seriesName))
         {
@@ -927,10 +927,10 @@ private async Task<bool> AddSeriesToSonarr(int? theTvdbId, string seriesName, st
         else
         {
             var responseContent = await response.Content.ReadAsStringAsync();
-            _logger.LogDebug($"Contenu de la réponse : {responseContent}");
+            Log($"Contenu de la réponse : {responseContent}");
                 if(responseContent.Contains("This series has already been added"))
                 {
-                    _logger.LogDebug("La série existe déjà dans Sonarr.");
+                    Log("La série existe déjà dans Sonarr.");
                 }
                 else
                 {
@@ -960,10 +960,10 @@ private async Task<bool> AddMovieToRadarr(int? theTvdbId, string seriesName, str
         }
 
         // Débogage : afficher les valeurs de ApiKey et Host
-        _logger.LogDebug($"ApiKey : {apiConfig.Value.ApiKey}");
-        _logger.LogDebug($"Host : {apiConfig.Value.Host}");
-        _logger.LogDebug($"RootFolderPath : {apiConfig.Value.RootFolderPath}");
-        _logger.LogDebug($"qualityProfileId : {apiConfig.Value.qualityProfileId}");
+        Log($"ApiKey : {apiConfig.Value.ApiKey}");
+        Log($"Host : {apiConfig.Value.Host}");
+        Log($"RootFolderPath : {apiConfig.Value.RootFolderPath}");
+        Log($"qualityProfileId : {apiConfig.Value.qualityProfileId}");
 
         if (!theTvdbId.HasValue || string.IsNullOrWhiteSpace(seriesName))
         {
@@ -998,7 +998,7 @@ private async Task<bool> AddMovieToRadarr(int? theTvdbId, string seriesName, str
             var responseContent = await response.Content.ReadAsStringAsync();
                 if(responseContent.Contains("This movie has already been added"))
                 {
-                    _logger.LogDebug("Le Film existe déjà dans Radarr.");
+                    Log("Le Film existe déjà dans Radarr.");
                 }
                 else
                 {
