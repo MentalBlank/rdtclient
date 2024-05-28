@@ -4,6 +4,7 @@ using System.Text.Json;
 using Microsoft.AspNetCore.Routing.Constraints;
 using RdtClient.Data.Models.Data;
 using Serilog;
+using RdtClient.Service.Helpers;
 
 namespace RdtClient.Service.Services.Downloaders;
 
