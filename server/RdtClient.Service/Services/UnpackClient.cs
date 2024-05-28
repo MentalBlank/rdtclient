@@ -2,11 +2,11 @@
 using RdtClient.Data.Models.Data;
 using RdtClient.Service.Helpers;
 using SharpCompress.Archives;
+using SharpCompress.Archives.IArchiveExtensions;
 using SharpCompress.Archives.Rar;
 using SharpCompress.Archives.Zip;
 using SharpCompress.Common;
 using System;
-using System.IO.Compression;
 
 namespace RdtClient.Service.Services;
 
@@ -152,23 +152,7 @@ public class UnpackClient(Download download, String destinationPath)
         var extension = Path.GetExtension(filePath);
 
         IArchive archive;
-        if (extension == ".zip")
-        {
-            archive = ZipArchive.Open(fi);
-        }
-        else
-        {
-            archive = RarArchive.Open(fi);
-        }
 
-        archive.ExtractToDirectory(extractPath,
-                                   d =>
-                                   {
-                                       Debug.WriteLine(d);
-                                       Progess = (Int32) Math.Round(d);
-                                   },
-                                   cancellationToken: cancellationToken);
-        
         archive.Dispose();
 
         GC.Collect();
