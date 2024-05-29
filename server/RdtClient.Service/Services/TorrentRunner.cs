@@ -462,13 +462,28 @@ public class TorrentRunner(ILogger<TorrentRunner> logger, Torrents torrents, Dow
 
                     var extension = Path.GetExtension(fileName);
 
-                    if (torrent.DownloadClient == Data.Enums.DownloadClient.Symlink && (extension == ".rar" || extension == ".zip"))
+                    if (torrent.DownloadClient == Data.Enums.DownloadClient.Symlink)
 					{
-                        await downloads.UpdateError(download.DownloadId, "Compressed file.");
-                        await downloads.UpdateCompleted(download.DownloadId, download.Completed);
+						if (extension == ".rar" || extension == ".zip")
+						{
+							await downloads.UpdateError(download.DownloadId, "Compressed file.");
+							await downloads.UpdateCompleted(download.DownloadId, download.Completed);
+						}
+						else
+						{
+							Log($"No need to unpack, setting it as unpacked", download, torrent);
 
+							download.UnpackingStarted = DateTimeOffset.UtcNow;
+							download.UnpackingFinished = DateTimeOffset.UtcNow;
+							download.Completed = DateTimeOffset.UtcNow;
+
+							await downloads.UpdateUnpackingStarted(download.DownloadId, download.UnpackingStarted);
+							await downloads.UpdateUnpackingFinished(download.DownloadId, download.UnpackingFinished);
+							await downloads.UpdateCompleted(download.DownloadId, download.Completed);
+						}
                         continue;
-					} else if (extension != ".rar" && extension != ".zip")
+					}
+					else if (extension != ".rar" && extension != ".zip")
                     {
                         Log($"No need to unpack, setting it as unpacked", download, torrent);
 
