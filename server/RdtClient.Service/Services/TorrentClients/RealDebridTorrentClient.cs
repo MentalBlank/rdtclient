@@ -180,7 +180,12 @@ public class RealDebridTorrentClient(ILogger<RealDebridTorrentClient> logger, IH
             Log("Selecting manual selected files", torrent);
             files = torrent.Files.Where(m => torrent.ManualFiles.Any(f => m.Path.EndsWith(f))).ToList();
         }
+        if (files.Count == 0)
+        {
+            Log($"Filtered all files out! Downloading ALL files instead!", torrent);
 
+            files = torrent.Files;
+        }
         Log($"Selecting {files.Count}/{torrent.Files.Count} files", torrent);
 
         if (torrent.DownloadAction != TorrentDownloadAction.DownloadManual && torrent.DownloadMinSize > 0)
