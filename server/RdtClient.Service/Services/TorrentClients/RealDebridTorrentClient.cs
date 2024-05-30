@@ -242,23 +242,24 @@ public class RealDebridTorrentClient(ILogger<RealDebridTorrentClient> logger, IH
 
         if (files.Count == 0)
         {
-            Log($"Filtered all files out! Downloading ALL files instead!", torrent);
+            Log($"Filtered all files out! Downloading NO files!", torrent);
+			throw new($"No Files Available to Download");
+            files = null;
+        } else {
 
-            files = torrent.Files;
-        }
+			var fileIds = files.Select(m => m.Id.ToString()).ToArray();
 
-        var fileIds = files.Select(m => m.Id.ToString()).ToArray();
+			Log($"Selecting files:");
 
-        Log($"Selecting files:");
+			foreach (var file in files)
+			{
+				Log($"{file.Id}: {file.Path} ({file.Bytes}b)");
+			}
 
-        foreach (var file in files)
-        {
-            Log($"{file.Id}: {file.Path} ({file.Bytes}b)");
-        }
+			Log("", torrent);
 
-        Log("", torrent);
-
-        await GetClient().Torrents.SelectFilesAsync(torrent.RdId!, [.. fileIds]);
+			await GetClient().Torrents.SelectFilesAsync(torrent.RdId!, [.. fileIds]);
+		}
     }
 
     public async Task Delete(String torrentId)
