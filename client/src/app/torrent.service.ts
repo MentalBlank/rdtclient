@@ -49,10 +49,19 @@ export class TorrentService {
     return this.http.post<void>(`${this.baseHref}Api/Torrents/UploadMagnet`, {
       magnetLink,
       torrent,
-    })
-    .pipe(
-      catchError(error => {
-        return throwError(error);
+    }).pipe(
+      catchError((error: HttpErrorResponse) => {
+        let errorMessage = 'An error occurred';
+        if (error.status === 400) {
+          errorMessage = 'Bad Request: ' + error.error.message;
+        } else if (error.status === 401) {
+          errorMessage = 'Bad Token: ' + error.error.message;
+        } else if (error.status === 403) {
+          errorMessage = 'Permission Denied: ' + error.error.message;
+        } else if (error.status === 503) {
+        errorMessage = 'Service Unavailable: ' + error.error.message;
+        }
+        return throwError(errorMessage);
       })
     );
   }
@@ -63,8 +72,18 @@ export class TorrentService {
     formData.append('formData', JSON.stringify({ torrent }));
     return this.http.post<void>(`${this.baseHref}Api/Torrents/UploadFile`, formData)
     .pipe(
-      catchError(error => {
-        return throwError(error);
+      catchError((error: HttpErrorResponse) => {
+        let errorMessage = 'An error occurred';
+        if (error.status === 400) {
+          errorMessage = 'Bad Request: ' + error.error.message;
+        } else if (error.status === 401) {
+          errorMessage = 'Bad Token: ' + error.error.message;
+        } else if (error.status === 403) {
+          errorMessage = 'Permission Denied: ' + error.error.message;
+        } else if (error.status === 503) {
+          errorMessage = 'Service Unavailable: ' + error.error.message;
+        }
+        return throwError(errorMessage);
       })
     );
   }

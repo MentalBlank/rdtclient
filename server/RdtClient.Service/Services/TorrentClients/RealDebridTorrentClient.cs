@@ -126,12 +126,11 @@ public class RealDebridTorrentClient(ILogger<RealDebridTorrentClient> logger, IH
     public async Task<String> AddMagnet(String magnetLink)
     {
         var result = await GetClient().Torrents.AddMagnetAsync(magnetLink);
-        throw new(result);
         if (result?.Id == null)
         {
             throw new("Unable to add magnet link");
         }
-        var resultId = result.Id.ToString() ?? throw new($"Invalid responseID {result.Id}");
+        var resultId = result.Id.ToString() ?? throw new($"Invalid responseID {result}");
         return result.Id;
     }
 
