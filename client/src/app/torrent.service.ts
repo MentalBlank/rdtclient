@@ -4,6 +4,8 @@ import * as signalR from '@microsoft/signalr';
 import { Observable, Subject } from 'rxjs';
 import { Torrent, TorrentFileAvailability } from './models/torrent.model';
 import { APP_BASE_HREF } from '@angular/common';
+import { Observable, throwError } from 'rxjs';
+import { catchError } from 'rxjs/operators';
 
 @Injectable({
   providedIn: 'root',
@@ -48,14 +50,12 @@ export class TorrentService {
     return this.http.post<void>(`${this.baseHref}Api/Torrents/UploadMagnet`, {
       magnetLink,
       torrent,
-    });
-  }
-
-  public uploadFile(file: File, torrent: Torrent): Observable<void> {
-    const formData: FormData = new FormData();
-    formData.append('file', file);
-    formData.append('formData', JSON.stringify({ torrent }));
-    return this.http.post<void>(`${this.baseHref}Api/Torrents/UploadFile`, formData);
+    })
+    .pipe(
+      catchError(error => {
+        return throwError(error);
+      })
+    );
   }
 
   public uploadFile(file: File, torrent: Torrent): Observable<void> {
@@ -63,9 +63,9 @@ export class TorrentService {
     formData.append('file', file);
     formData.append('formData', JSON.stringify({ torrent }));
     return this.http.post<void>(`${this.baseHref}Api/Torrents/UploadFile`, formData)
-      .pipe(
-        catchError(error => {
-          return throwError(error);
+    .pipe(
+      catchError(error => {
+        return throwError(error);
       })
     );
   }
