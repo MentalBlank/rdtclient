@@ -61,6 +61,7 @@ export class TorrentService {
         } else if (error.status === 503) {
         errorMessage = 'Service Unavailable: ' + error.error.message;
         }
+        throw new(errorMessage);
         return throwError(errorMessage);
       })
     );
@@ -83,6 +84,7 @@ export class TorrentService {
         } else if (error.status === 503) {
           errorMessage = 'Service Unavailable: ' + error.error.message;
         }
+        throw new(errorMessage);
         return throwError(errorMessage);
       })
     );

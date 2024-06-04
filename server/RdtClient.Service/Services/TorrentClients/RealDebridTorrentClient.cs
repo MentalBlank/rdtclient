@@ -130,7 +130,7 @@ public class RealDebridTorrentClient(ILogger<RealDebridTorrentClient> logger, IH
         {
             throw new("Unable to add magnet link");
         }
-        var resultId = result.Id.ToString() ?? throw new($"Invalid responseID {result}");
+        var resultId = result.Id.ToString() ?? throw new($"Invalid responseID {result.Id}");
         return result.Id;
     }
 
