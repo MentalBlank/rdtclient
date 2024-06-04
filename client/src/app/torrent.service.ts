@@ -1,10 +1,9 @@
 import { HttpClient } from '@angular/common/http';
 import { Inject, Injectable } from '@angular/core';
 import * as signalR from '@microsoft/signalr';
-import { Observable, Subject } from 'rxjs';
+import { Observable, Subject, throwError } from 'rxjs';
 import { Torrent, TorrentFileAvailability } from './models/torrent.model';
 import { APP_BASE_HREF } from '@angular/common';
-import { Observable, throwError } from 'rxjs';
 import { catchError } from 'rxjs/operators';
 
 @Injectable({
