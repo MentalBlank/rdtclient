@@ -137,12 +137,11 @@ public class RealDebridTorrentClient(ILogger<RealDebridTorrentClient> logger, IH
     public async Task<String> AddFile(Byte[] bytes)
     {
         var result = await GetClient().Torrents.AddFileAsync(bytes);
-        throw new(result);
         if (result?.Id == null || result?.uri == null)
         {
-            throw new("Unable to add torrent file");
+                    throw new(result);
         }
-        var resultId = result.Id.ToString() ?? throw new($"Invalid responseID {result.Id}");
+        var resultId = result.Id.ToString() ?? throw new(result);
         return resultId;
     }
 
