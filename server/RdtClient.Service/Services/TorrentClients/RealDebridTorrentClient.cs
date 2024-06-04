@@ -127,7 +127,7 @@ public class RealDebridTorrentClient(ILogger<RealDebridTorrentClient> logger, IH
     {
         var result = await GetClient().Torrents.AddMagnetAsync(magnetLink);
         throw new(result);
-        if (result?.Id == null || result?.uri == null)
+        if (result?.Id == null)
         {
             throw new("Unable to add magnet link");
         }
@@ -138,7 +138,7 @@ public class RealDebridTorrentClient(ILogger<RealDebridTorrentClient> logger, IH
     public async Task<String> AddFile(Byte[] bytes)
     {
         var result = await GetClient().Torrents.AddFileAsync(bytes);
-        if (result?.Id == null || result?.uri == null)
+        if (result?.Id == null)
         {
             throw new("Unable to add torrent file");
         }
