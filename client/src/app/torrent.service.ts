@@ -58,6 +58,18 @@ export class TorrentService {
     return this.http.post<void>(`${this.baseHref}Api/Torrents/UploadFile`, formData);
   }
 
+  public uploadFile(file: File, torrent: Torrent): Observable<void> {
+    const formData: FormData = new FormData();
+    formData.append('file', file);
+    formData.append('formData', JSON.stringify({ torrent }));
+    return this.http.post<void>(`${this.baseHref}Api/Torrents/UploadFile`, formData)
+      .pipe(
+        catchError(error => {
+          return throwError(error);
+      })
+    );
+  }
+
   public checkFilesMagnet(magnetLink: string): Observable<TorrentFileAvailability[]> {
     return this.http.post<TorrentFileAvailability[]>(`${this.baseHref}Api/Torrents/CheckFilesMagnet`, {
       magnetLink,
