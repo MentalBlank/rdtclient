@@ -1,5 +1,8 @@
-﻿using Microsoft.AspNetCore.Authorization;
+﻿using System.Net;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.Extensions.DependencyInjection;
+using Polly;
+using Polly.Extensions.Http;
 using RdtClient.Service.BackgroundServices;
 using RdtClient.Service.Middleware;
 using RdtClient.Service.Services;
@@ -9,7 +12,9 @@ namespace RdtClient.Service;
 
 public static class DiConfig
 {
-    public static void Config(IServiceCollection services)
+    public const String RD_CLIENT = "RdClient";
+    
+    public static void RegisterRdtServices(this IServiceCollection services)
     {
         services.AddScoped<AllDebridTorrentClient>();
         services.AddScoped<Authentication>();
@@ -29,5 +34,18 @@ public static class DiConfig
         services.AddHostedService<TaskRunner>();
         services.AddHostedService<UpdateChecker>();
         services.AddHostedService<WatchFolderChecker>();
+    }
+
+    public static void RegisterHttpClients(this IServiceCollection services)
+    {
+        services.AddHttpClient();
+
+        var retryPolicy = HttpPolicyExtensions
+                          .HandleTransientHttpError()
+                          .OrResult(r => r.StatusCode == HttpStatusCode.TooManyRequests)
+                          .WaitAndRetryAsync(retryCount: 5, sleepDurationProvider: attempt => TimeSpan.FromSeconds(Math.Pow(2, attempt)));
+
+        services.AddHttpClient(RD_CLIENT)
+                .AddPolicyHandler(retryPolicy);
     }
 }

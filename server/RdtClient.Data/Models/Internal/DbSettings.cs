@@ -183,7 +183,7 @@ or
 
     [DisplayName("Check Interval")]
     [Description("The interval to check the torrents info on the providers API. Minumum is 3 seconds. When there are no active downloads this limit is increased * 3.")]
-    public Int32 CheckInterval { get; set; } = 3;
+    public Int32 CheckInterval { get; set; } = 10;
 
     [DisplayName("Auto Import Defaults")]
     public DbSettingsDefaultsWithCategory Default { get; set; } = new();
